@@ -298,8 +298,13 @@ class FullyConnectedNet(object):
                 relu_out, relu_cache = batchnorm_relu_forward(affine_out, self.params["gamma" + str(i + 1)], self.params["beta" + str(i + 1)], self.bn_params[i])
             else :
                 relu_out, relu_cache = relu_forward(affine_out)
-            caches.append((affine_cache, relu_cache))
-            next_input = relu_out
+            if self.use_dropout:
+                dropout_out, dropout_cache = dropout_forward(relu_out, self.dropout_param)
+                caches.append((affine_cache, relu_cache, dropout_cache))
+                next_input = dropout_out
+            else:
+                caches.append((affine_cache, relu_cache))
+                next_input = relu_out
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -329,6 +334,8 @@ class FullyConnectedNet(object):
             if i == self.num_layers - 1:
                 dx, dw, db = affine_backward(dL, last_affine_cache) 
             else:
+                if self.use_dropout:
+                    dx = dropout_backward(dx, caches[i][2])
                 if self.use_batchnorm:
                     dR, dgamma, dbeta = batchnorm_relu_backward(dx, caches[i][1])
                     grads["gamma" + str(i + 1)] = dgamma
