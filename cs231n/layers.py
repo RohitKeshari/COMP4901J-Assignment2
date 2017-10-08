@@ -327,7 +327,7 @@ def dropout_forward(x, dropout_param):
         # TODO: Implement the test phase forward pass for inverted dropout.   #
         #######################################################################
         pass
-        out = x
+        out = x * p
         #######################################################################
         #                            END OF YOUR CODE                         #
         #######################################################################
