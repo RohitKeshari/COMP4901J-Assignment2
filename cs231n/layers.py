@@ -240,7 +240,18 @@ def batchnorm_backward(dout, cache):
     x, est_x, gamma, beta, mean, var, eps= cache
     dgamma = np.sum(dout * est_x, axis = 0) 
     dbeta = np.sum(dout, axis = 0)
-    dx = gamma / np.sqrt(var + eps) * (dout - dbeta /N - (x - mean) / (var + eps) * np.mean(dout * (x - mean), axis = 0))
+    # dx = gamma / np.sqrt(var + eps) * (dout - dbeta /N - (x - mean) / (var + eps) * np.mean(dout * (x - mean), axis = 0))
+    dest_x = dout * gamma
+    divar = np.sum(dest_x*(x-mean), axis=0)
+    dxmu1 = dest_x / np.sqrt(var +eps)
+    dsqrtvar = -1. /(var+eps) * divar
+    dvar = 0.5 * 1. /np.sqrt(var+eps) * dsqrtvar
+    dsq = 1. /N * np.ones((N,D)) * dvar
+    dxmu2 = 2 * (x-mean) * dsq
+    dx1 = (dxmu1 + dxmu2)
+    dmu = -1 * np.sum(dxmu1+dxmu2, axis=0)
+    dx2 = 1. /N * np.ones((N,D)) * dmu
+    dx = dx1 + dx2
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -276,8 +287,7 @@ def batchnorm_backward_alt(dout, cache):
     dgamma = np.sum(dout * est_x, axis = 0) 
     dbeta = np.sum(dout, axis = 0)
     dest_x = dout * gamma
-    dx = (1. / N) / np.sqrt(var+eps) * (N*dest_x - np.sum(dest_x, axis=0) - est_x*np.sum(dest_x*est_x, axis=0))
-    # dx = (1. / N) / np.sqrt(var+eps) * dout * gamma * (N-1 -(x-mean)/(var+eps)*(x-mean - np.mean(x-mean, axis=0)))
+    dx = (-np.mean(dest_x * np.sqrt(var+eps), axis=0) - np.mean(dest_x*est_x, axis=0) * (x-mean) + dest_x*np.sqrt(var+eps)) / (var+eps)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -327,7 +337,7 @@ def dropout_forward(x, dropout_param):
         # TODO: Implement the test phase forward pass for inverted dropout.   #
         #######################################################################
         pass
-        out = x * p
+        out = x * (1-p)
         #######################################################################
         #                            END OF YOUR CODE                         #
         #######################################################################
