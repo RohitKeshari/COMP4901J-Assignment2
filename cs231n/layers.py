@@ -287,7 +287,8 @@ def batchnorm_backward_alt(dout, cache):
     dgamma = np.sum(dout * est_x, axis = 0) 
     dbeta = np.sum(dout, axis = 0)
     dest_x = dout * gamma
-    dx = (-np.mean(dest_x * np.sqrt(var+eps), axis=0) - np.mean(dest_x*est_x, axis=0) * (x-mean) + dest_x*np.sqrt(var+eps)) / (var+eps)
+    destivar = dest_x * np.sqrt(var+eps)
+    dx = (-np.mean(destivar, axis=0) - np.mean(dest_x*est_x, axis=0) * (x-mean) + destivar) / (var+eps)
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -405,8 +406,8 @@ def conv_forward_naive(x, w, b, conv_param):
     pad = conv_param["pad"]
     N, C, H, W = x.shape
     F, C, HH, WW = w.shape
-    H_ = 1 + (H + 2 * pad - HH) / stride
-    W_ = 1 + (W + 2 * pad - WW) / stride
+    H_ = 1 + (H + 2 * pad - HH) // stride
+    W_ = 1 + (W + 2 * pad - WW) // stride
     p_x = np.pad(x, ((0, 0), (0, 0), (pad, pad), (pad, pad)), mode = "constant", constant_values = 0)
     N, C, p_H, p_W = p_x.shape
     out = np.zeros((N, F, H_, W_)) 
@@ -451,8 +452,8 @@ def conv_backward_naive(dout, cache):
     pad = conv_param["pad"]
     N, C, H, W = x.shape
     F, C, HH, WW = w.shape
-    H_ = 1 + (H + 2 * pad - HH) / stride
-    W_ = 1 + (W + 2 * pad - WW) / stride
+    H_ = 1 + (H + 2 * pad - HH) // stride
+    W_ = 1 + (W + 2 * pad - WW) // stride
     p_x = np.pad(x, ((0, 0), (0, 0), (pad, pad), (pad, pad)), mode = "constant", constant_values = 0)
     p_dx = np.zeros_like(p_x)
     dw = np.zeros_like(w)
@@ -500,8 +501,8 @@ def max_pool_forward_naive(x, pool_param):
     pool_height = pool_param["pool_height"]
     pool_width = pool_param["pool_width"]
     stride = pool_param["stride"]
-    H_ = 1 + (H - pool_height) / stride
-    W_ = 1 + (W - pool_width) / stride
+    H_ = 1 + (H - pool_height) // stride
+    W_ = 1 + (W - pool_width) // stride
     out = np.zeros((N, C, H_, W_))
     for yi in range(0, H - pool_height + 1, stride):
         for xi in range(0, W - pool_width + 1, stride):
